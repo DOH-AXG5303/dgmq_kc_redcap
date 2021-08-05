@@ -1,0 +1,20 @@
+name: transform21
+# Alexey Gilman, 05/19/2021
+# Environment for DOH data transformations
+
+
+channels:
+  - defaults
+dependencies:
+  - python=3.8*
+  - pandas=1.2*
+  - openpyxl=3.0*
+  - hvplot=0.7*
+  - matplotlib=3.3*
+
+
+#MANUAL INSTALL
+
+#manual install of jupyterlab
+#manual install of nb_conda   -jupyter support of conda envs
+#manual install of jedi -autocomple text tab
