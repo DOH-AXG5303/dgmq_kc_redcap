@@ -31,6 +31,7 @@ def check_csv_files(files):
     """
     verify rules in the input list of strings (file names):
         1)pwd contains exactly 1 .csv file
+        2)pwd contains exactly 1 Records file
         
     args:
         files: list of strings
@@ -49,22 +50,24 @@ def check_csv_files(files):
 
     # verify all rules to be True
     if all(rules):
-        print("Conditions is met. Present directory contains one .csv file and one Records.xlsx file")
+        print("Conditions are met. Present directory contains one .csv file and one Records.xlsx file")
         return all(rules)
 
     else:
         raise Exception("Condition not met: Exactly one .csv file and one Records.xlsx file is expected in directory")
 
-def load_csv_files(files):
+def load_files(files, condition):
     """
-    import .csv file in the files list argument
+    import .csv and Records.xlsx files in the files list argument
 
     args:
-        files: list of string
+        files: list of strings
+        condition = bool, output from check conditions function
  
     return: dict of dataframes
     """
     path = "./"  # path to pwd
+    df_dict = {} 
     
     #list of columns that should be datetime type
     date_clms = [
@@ -77,15 +80,33 @@ def load_csv_files(files):
     'Date of departure.5',
     'Date of departure.6',]
     
-    df = pd.read_csv(path + files[0], parse_dates = date_clms)
+    # import excel into dataframes if file condition has been met
+    if condition:
+        for i in files:
+            if i == "Records.xlsx":  # laod instructions for Records.xlsx file
+                df_dict["Records"] = pd.read_excel((path + i),
+                                                   sheet_name="Master",
+                                                   engine="openpyxl")
+            
+            else:
+                df_dict["Travel"] = pd.read_csv(path + files[0], parse_dates = date_clms)
+    else:
+        print("FAILED TO MEET CONDITION: Excel files were not imported")
+        raise Exception("Condition not met: Exactly one .csv file and one Records.xlsx file is expected in directory")
+    return df_dict
 
-    return df
+def import_data():
+    files = scan_directory()
+    condition = check_csv_files(files)
+    df_dict = load_files(files, condition)
+    
+    return df_dict
 
-def filter_by_travel_date(df):
+
+def infectious_check(df):
     """
-    Keep the rows of data that meet the rule:
-        - any of the multiple departure dates fall within the range: 14 days before collection date, to collection date. 
-        
+    Keep the rows of data where ANY of the departure dates fall between -2 days before test to +10 days after test
+    
     args:
         df: panadas Dataframe
     return:
@@ -101,24 +122,24 @@ def filter_by_travel_date(df):
         'Date of departure.5',
         'Date of departure.6',]
 
-    days14 = timedelta(days=14)
+    days10 = timedelta(days=10)
+    days2 = timedelta(days = 2)
 
-    #departures that occur before the test date
-    cond_1 = df[date_departure].lt((df['Test collection date']), axis = 0)
+    #True for all departures that occur before (test collection + 10days)
+    cond_1 = df[date_departure].lt((df['Test collection date']+days10), axis = 0)
 
-    #departures that occur after (test date minus 14 days)
-    cond_2 = df[date_departure].gt((df['Test collection date']-days14), axis = 0)
+    #True for all departures that occue after (test collection - 2days)
+    cond_2 = df[date_departure].gt((df['Test collection date']-days2), axis = 0)
 
-    # combined conditions, ANY departures that fall into the 14 days window prior to test date
+    # combined conditions, ANY departures that fall between -2days before test, and +10 days after test 
     df = df[(cond_1 & cond_2).any(axis=1)].copy()
     
     return df
 
 if (__name__=="__main__"):
 
-    files = scan_directory()
-    check_csv_files(files)
-    df = load_csv_files(files)
-    df = filter_by_travel_date(df)
-
-    df.to_csv("./Redcap_Result.csv", index=False)
+    df_dict = import_data()
+    
+    df_travel = infectious_check(df_dict["Travel"])
+    
+    df_travel.to_csv("./Redcap_Result.csv", index=False)
