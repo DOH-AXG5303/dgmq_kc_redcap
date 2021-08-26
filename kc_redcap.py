@@ -27,7 +27,6 @@ def scan_directory(path_input = None):
         
     return files
 
-
 def check_csv_files(files):
     """
     verify rules in the input list of strings (file names):
@@ -37,18 +36,24 @@ def check_csv_files(files):
         files: list of strings
     return: bool
     """
+    # rules for files: exactly 1 xlsx file and exactly 1 file names "Records.xlsx"
+    xls_files = 0
+    csv_files = 0
+    for i in files:
+        if i.endswith(".csv"):
+            csv_files += 1
+        if i == ("Records.xlsx"):
+            xls_files += 1
 
-    # rules for files: exactly 2 files, Records.xlxs is present
-    rules = [len(files) == 1]
+    rules = [xls_files==1, csv_files==1]
 
     # verify all rules to be True
     if all(rules):
-        print("Conditions is met. Present directory contains 1 .csv file")
+        print("Conditions is met. Present directory contains one .csv file and one Records.xlsx file")
         return all(rules)
 
     else:
-        raise Exception("Condition not met: Exactly 1 .csv file is expected in directory")
-
+        raise Exception("Condition not met: Exactly one .csv file and one Records.xlsx file is expected in directory")
 
 def load_csv_files(files):
     """
