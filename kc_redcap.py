@@ -2,18 +2,25 @@ import pandas as pd
 import os, re
 from datetime import datetime, timedelta
 
-def scan_directory():
+def scan_directory(path_input = None):
     """
-    Query present working directory for all .csv files
+    Query present working directory for all .csv files and all .xlsx files
 
-    return: list of .csv file names
+    args:
+        path_input = string, path to directory to be scanned. 
+    return: list of file names
     """
-    path = "./"  # path to pwd
+    if path_input is None:
+        path = "./"
+        
+    path = path_input 
     files = []
-
+    
     # iterate filenames in directory and append .xlsx to files list
     for fname in os.listdir(path):
         if re.search(r'.csv', fname):
+            files.append(fname)
+        if re.search(r'.xlsx', fname):
             files.append(fname)
         else:
             pass
