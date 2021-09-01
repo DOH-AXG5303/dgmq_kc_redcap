@@ -123,8 +123,8 @@ def infectious_check(df_input):
         'Date of departure.5',
         'Date of departure.6',]
 
-    days10 = timedelta(days=10)
-    days2 = timedelta(days = 2)
+    days10 = timedelta(days=11)
+    days2 = timedelta(days = 3)
 
     #True for all departures that occur before (test collection + 10days)
     cond_1 = df[date_departure].lt((df['Test collection date']+days10), axis = 0)
@@ -158,7 +158,7 @@ def relevance_check(df_input):
     'Date of departure.6',]
     
     
-    days14 = timedelta(days=14)
+    days14 = timedelta(days=15)
     now = datetime.today()
     
     #bool index for data where departure date is within the last 14 days
